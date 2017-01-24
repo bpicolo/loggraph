@@ -7,16 +7,10 @@ from loggraph.loggraph import generate_graph
 def overtime_main():
     parser = argparse.ArgumentParser('Simple graphing for your log data.')
     parser.add_argument(
-        '-a', '--aggregate',
-        dest='aggregates',
+        '-g', '--graph',
+        dest='graph_definitions',
         action='append',
         help='How to aggregate data in your columns. Options: count, mean'
-    )
-    parser.add_argument(
-        '-c', '--column',
-        dest='columns',
-        action='append',
-        help='Field to aggregate over.'
     )
     parser.add_argument(
         '--timecolumn',
@@ -29,21 +23,15 @@ def overtime_main():
     )
     args = parser.parse_args(sys.argv[2:])
 
-    if args.columns is None or args.aggregates is None:
+    if not args.graph_definitions:
         raise ValueError(
-            'Must specify columns and aggregate methods. Ex: loggraph overtime -c item.price -a mean purchase_log.json'
-        )
-    if len(args.columns) != len(args.aggregates):
-        raise ValueError(
-            'Must have same number of columns and aggregates, got {} and {}'.format(
-                args.columns, args.aggregates
-            )
+            'Must specify something to graph! '
+            'Ex: loggraph overtime -g sum(item.price) purchase_log.json'
         )
 
     generate_graph(
         args.filepath,
-        args.columns,
-        args.aggregates,
+        args.graph_definitions,
         args.time_column
     )
 
@@ -53,7 +41,7 @@ graph_type_to_main = {
 }
 
 
-if __name__ == '__main__':
+def main():
     parser = argparse.ArgumentParser(
         description='Simple graphing utility for your data',
         usage='''loggraph <graph type> [<args>]
@@ -68,7 +56,13 @@ Available graph types are:
         print('\nUnrecognized graph type: {}'.format(args.graph_type))
         exit(1)
 
-    try:
-        graph_type_to_main[args.graph_type]()
-    except Exception as e:
-        print('Exception trying to generate graph: \n{}'.format(e))
+    # import cProfile, pstats
+    # pr = cProfile.Profile()
+    # pr.enable()
+    graph_type_to_main[args.graph_type]()
+    # pr.disable()
+    # pr.dump_stats('cprofile.prof')
+
+
+if __name__ == '__main__':
+    exit(main())

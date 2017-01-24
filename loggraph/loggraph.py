@@ -5,7 +5,8 @@ from bokeh import palettes
 from bokeh.plotting import figure
 from bokeh.charts import show
 
-from loggraph.parser import load_file_for_dataframe
+from loggraph import accumulator
+from loggraph.parser import log_record_generator
 
 
 def extract_likely_date_column(data):
@@ -67,34 +68,39 @@ def aggregate_data_for_plot(time_column_name, data, column_name, aggregate_type)
     )()
 
 
-def aggregate_plot_data(data, time_column_name, columns, aggregates):
-    return data.groupby(time_column_name, as_index=False).agg({
-        column: aggregate
-        for column, aggregate in zip(columns, aggregates)
-    })
+def accumulators_for_definitions(graph_definitions):
+    accumulator_definitions = (
+        tuple(definition[:-1].split('['))
+        for definition in graph_definitions
+    )
+
+    return [
+        accumulator.NAME_TO_ACCUMULATOR[name](path.split('.'))
+        for name, path in accumulator_definitions
+    ]
 
 
 def generate_graph(
     filepath,
-    columns,
-    aggregates,
+    graph_definitions,
     time_column_name
 ):
-    frame = pandas.DataFrame(load_file_for_dataframe(filepath))
-    time_column_name = get_time_column_name(time_column_name, frame)
-    frame[time_column_name] = pandas.to_datetime(frame[time_column_name])
-    data = normalize_dataframe(frame)
+    accumulators = accumulators_for_definitions(graph_definitions)
+    record_generator = log_record_generator(filepath)
+    by_day = accumulator.ByDayAccumulator(accumulators, time_column_name)
+    for record in record_generator:
+        by_day.process(record)
 
     colors = itertools.cycle(palettes.Set2[8])
 
     plot = figure(width=800, height=400, x_axis_type='datetime')
-    plot.xaxis.axis_label = time_column_name.capitalize()
-    for column_name, aggregate in zip(columns, aggregates):
-        line_data = aggregate_data_for_plot(time_column_name, data, column_name, aggregate)
+    plot.xaxis.axis_label = by_day.time_column_name.capitalize()
+
+    for x_axis, y_axis, legend in by_day.get_rendered_axes():
         plot.line(
-            line_data[time_column_name],
-            line_data[column_name],
-            legend='{}({})'.format(aggregate.capitalize(), column_name),
+            x_axis,
+            y_axis,
+            legend=legend,
             color=next(colors)
         )
 

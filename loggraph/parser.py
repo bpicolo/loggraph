@@ -1,4 +1,3 @@
-import csv
 import ujson as json
 
 
@@ -9,13 +8,7 @@ def load_json(filepath):
     )
 
 
-def load_csv(filepath):
-    return (
-        row for row in csv.DictReader(open(filepath))
-    )
-
-
-def load_file_for_dataframe(filepath):
+def log_record_generator(filepath):
     try:
         ext = filepath.split('.')[-1]
     except IndexError:
@@ -29,5 +22,4 @@ def load_file_for_dataframe(filepath):
 
 EXTENSION_TO_loader = {
     'json': load_json,
-    'csv': load_csv
 }

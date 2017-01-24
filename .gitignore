@@ -1,5 +1,9 @@
+/dist
+/build
+*.prof
 __pycache__
 *.py[co]
 log*.json
-venv
+venv*
 *.html
+*.egg-info
