@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='loggraph',
-    version='0.0.1',
+    version='0.0.2-dev1',
     author='Ben Picolo',
     author_email='be.picolo@gmail.com',
     url='https://github.com/bpicolo/loggraph',
@@ -13,6 +13,8 @@ setup(
     },
     install_requires=[
         'bokeh',
+        'ciso8601',
+        'pandas',
         'python-dateutil',
         'ujson'
     ]
