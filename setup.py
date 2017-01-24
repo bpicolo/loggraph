@@ -3,7 +3,7 @@ from setuptools import setup
 
 setup(
     name='loggraph',
-    version='0.0.2-dev1',
+    version='0.0.2',
     author='Ben Picolo',
     author_email='be.picolo@gmail.com',
     url='https://github.com/bpicolo/loggraph',
